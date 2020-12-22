@@ -1,0 +1,22 @@
+{
+  "name": "dev-camp",
+  "version": "1.0.0",
+  "description": "devcamper backend api",
+  "main": "server.js",
+  "scripts": {
+    "start": "NODE_ENV=production node server.js",
+    "dev": "nodemon server"
+  },
+  "keywords": [
+    "bootcamp",
+    "node",
+    "js"
+  ],
+  "author": "Abu Taher Saikat",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "morgan": "^1.10.0"
+  }
+}
