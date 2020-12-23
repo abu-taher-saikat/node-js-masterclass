@@ -1,5 +1,6 @@
 const ErrorResponse = require('./../utils/errorResponse');
 const asyncHandler = require("./../middleware/async");
+const geocoder = require('../utils/geocoder');
 const Bootcamp = require('./../models/Bootcamp');
 
 
@@ -8,7 +9,44 @@ const Bootcamp = require('./../models/Bootcamp');
 // @route  GET /api/v1/bootcamps
 // @access Public
 exports.getBootcamps = asyncHandler(async (req, res, next) => {
-    const bootcamps = await Bootcamp.find();
+    let query;
+
+    // Copy req.query || it's called spread operater... to catch manyquery all at a time. 
+    const reqQuery = {...req.query};
+
+    // Fields to exclude
+    const removeFields = ['select','sort'];
+
+    // Loop over removedFields and delete them from reqQuery. 
+    removeFields.forEach(param => delete reqQuery[param]);
+
+
+    // Create query String && create operator
+    // stringfy make json data to -> string. for menupolate $ sign  
+    let queryStr = JSON.stringify(reqQuery);
+    queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in)\b/g, match => `$${match}`);
+
+    // JSON.parse modifiy string to ->  json data.
+    query = Bootcamp.find(JSON.parse(queryStr));
+    // console.log(queryStr);
+
+    // Select Fields
+    if(req.query.select){
+        const fields = req.query.select.split(',').join(' ');
+        query = query.select(fields);
+        console.log(fields);
+    }
+
+    // Sort 
+    if(req.query.sort){
+        const sortBy = req.query.sort.split(',').join(' ');
+        query = query.sort(sortBy);
+    }else{
+        query = query.sort('-createdAt');
+    }
+
+    // Executing query..
+    const bootcamps = await query;
     res.status(200).json({
         success: true,
         count: bootcamps.length,
@@ -86,4 +124,41 @@ exports.deleteBootcamp = asyncHandler(async (req, res, next) => {
     })
 
 
+});
+
+
+// @desc   Get bootcamps with a radious
+// @route  GET /api/v1/bootcamps/radious/:zipcode/:distance
+// @access Privet
+exports.getBootcampsInRadious = asyncHandler(async (req, res, next) => {
+
+    const {
+        zipcode,
+        distance
+    } = req.params;
+
+    // Get Lat/lng from geocoder.
+    const loc = await geocoder.geocode(zipcode);
+    const lat = loc[0].latitude;
+    const lng = loc[0].longitude;
+
+    // Calc radious using radious
+    // Divide dist  by radious of Earth
+    // Earth Radius= 3,963 mi / 6378.1 km
+    const radius = distance / 3963;
+    const bootcamps = await Bootcamp.find({
+        location: {
+            $geoWithin: {
+                $centerSphere: [
+                    [lng, lat], radius
+                ]
+            }
+        }
+    });
+
+    res.status(200).json({
+        success: true,
+        count: bootcamps.length,
+        data: bootcamps
+    });
 });
