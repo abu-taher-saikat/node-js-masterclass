@@ -13,6 +13,7 @@ dotenv.config({
 
 // load models
 const Bootcamp = require('./models/Bootcamp');
+const Course = require('./models/Courses');
 
 // Connect to DB
 
@@ -27,25 +28,31 @@ mongoose.connect(process.env.MONGO_URI, {
 // Read JSON file
 const bootcamps = JSON.parse(fs.readFileSync(`${__dirname}/_data/bootcamps.json`, 'utf-8'));
 
+const courses = JSON.parse(
+    fs.readFileSync(`${__dirname}/_data/courses.json`, 'utf-8')
+);
+
 
 // Import into DB
-const importData = async ()=>{
-    try{
+const importData = async () => {
+    try {
         await Bootcamp.create(bootcamps);
+        await Course.create(courses);
         console.log('Data Imported...'.green.inverse);
         process.exit();
-    }catch(err){
+    } catch (err) {
         console.log(err);
     }
 }
 
 // Delete data
-const deleteData = async ()=>{
-    try{
+const deleteData = async () => {
+    try {
         await Bootcamp.deleteMany();
+        await Course.deleteMany();
         console.log('Data Destroyed.....'.red.inverse);
         process.exit();
-    }catch(err){
+    } catch (err) {
         console.log(err);
     }
 }
@@ -56,8 +63,8 @@ const deleteData = async ()=>{
 // node seeder.js -i [here i for import]
 // or
 // node seeder.js -d [here d for Delete]
-if(process.argv[2] === '-i'){
+if (process.argv[2] === '-i') {
     importData();
-}else if(process.argv[2] === '-d'){
+} else if (process.argv[2] === '-d') {
     deleteData();
 }
