@@ -9,24 +9,25 @@ const Bootcamp = require('./../models/Bootcamp');
 // @route  GET /api/v1/bootcamps/:bootcampId/courses
 // @access Public
 exports.getCourses = asyncHandler(async (req, res, next)=>{
-    let query; 
-
     if(req.params.bootcampId){
-        query = Course.find({bootcamp : req.params.bootcampId});
+      const courses = await Course.find({bootcamp : req.params.bootcampId});
+
+      return res.status(200).json({
+          success : true,
+          count : course.length,
+          data : course
+      })
     }else{
-        query = Course.find().populate({
-            path : 'bootcamp',
-            select : 'name description' // just selete this property from bootcamp.
-        });
+        res.status(200).json(res.advancedResults);
     }
 
-    const courses  = await query;
+    // const courses  = await query;
 
-    res.status(200).json({
-        success : true,
-        count : courses.length,
-        data : courses
-    })
+    // res.status(200).json({
+    //     success : true,
+    //     count : courses.length,
+    //     data : courses
+    // })
 });
 
 
@@ -70,6 +71,53 @@ exports.addCourse = asyncHandler(async (req, res, next)=>{
     res.status(200).json({
         success : true,
         data : course
+    })
+
+})
+
+
+
+// @desc   Update a course
+// @route  PUT /api/v1/course/:id
+// @access private
+exports.updateCourse = asyncHandler(async (req, res, next)=>{
+    let course = await Course.findById(req.params.id);
+
+    if(!course){
+        return next(new ErrorResponse(`No Course with the id of ${req.params.id}`),404);
+    }
+
+    course = await Course.findByIdAndUpdate(req.params.id, req.body,{
+        new : true,
+        runValidators : true
+    })
+
+    res.status(200).json({
+        success : true,
+        data : course
+    })
+
+})
+
+
+
+
+
+// @desc   Delete a course
+// @route  PUT /api/v1/course/:id
+// @access private
+exports.delteCourse = asyncHandler(async (req, res, next)=>{
+    const course = await Course.findById(req.params.id);
+
+    if(!course){
+        return next(new ErrorResponse(`No Course with the id of ${req.params.id}`),404);
+    }
+
+    await Course.remove();
+
+    res.status(200).json({
+        success : true,
+        data : {}
     })
 
 })
