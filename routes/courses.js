@@ -1,11 +1,12 @@
 const express = require("express");
-const { protect , authorize } = require('../middleware/auth');
 
 const {
     getCourses, getCourse, addCourse, updateCourse, deleteCourse
 } = require("../controllers/courses");
 
 const Course = require('../models/Courses');
+
+const { protect , authorize } = require('../middleware/auth');
 const advancedResults = require('../middleware/advancedResults');
 
 const router = express.Router({ mergeParams : true});
